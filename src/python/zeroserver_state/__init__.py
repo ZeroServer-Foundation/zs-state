@@ -1,3 +1,31 @@
+
+
+class Libp2p:
+    """
+
+
+    """
+    pass
+
+
+@dataclasses
+class DataMeshPeer:
+    """
+
+    network setup
+    authentication
+
+    """
+    
+
+
+
+    @classmethod
+    def get_instance(cls): pass
+
+
+
+
 class PubSubEventType(Enum):
     
 
@@ -8,7 +36,8 @@ class NotificationHandler:
         pubsub_event_type: PubSubEventType,
         pubsub_data: dict) -> None: pass
 
-class PersistenceHandle:
+
+class StateHandle:
     """
 
     messaging encryption, underlying backend (Supabase, Ethereum, etc.) and setup (login, auth, password, etc.) should be abstrcated behind this class, such that once an app has an initialized version of this object, it is assumed that everything needed to set that up has already magically happened in the backgroun
@@ -36,3 +65,13 @@ class PersistenceHandle:
         """
         pass
 
+
+
+
+class SqlaProxy:
+    """
+
+    since SqlAlchemy is available in Pyodide, it makes sense to think about having the underlying backend proxied over ZeroServer Data Mesh
+
+    """
+    pass

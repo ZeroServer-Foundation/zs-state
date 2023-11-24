@@ -1,31 +1,3 @@
-
-
-class Libp2p:
-    """
-
-
-    """
-    pass
-
-
-@dataclasses
-class DataMeshPeer:
-    """
-
-    network setup
-    authentication
-
-    """
-    
-
-
-
-    @classmethod
-    def get_instance(cls): pass
-
-
-
-
 class PubSubEventType(Enum):
     
 
@@ -65,13 +37,21 @@ class StateHandle:
         """
         pass
 
-
-
-
-class SqlaProxy:
+class RpcOverPubsub: 
     """
 
-    since SqlAlchemy is available in Pyodide, it makes sense to think about having the underlying backend proxied over ZeroServer Data Mesh
+    """
+    pass
+
+
+class SqlModelSync:
+    """
+
+    since SqlAlchemy is available in Pyodide, it makes sense to think about having the underlying backend proxied over ZeroServer Data Mesh, 
+    
+    but in a way that allows SqlLite to be replaced by proxied, layered, copy-on-wriite, distribution, sync, and other tricks to be used on the underlying binary file
+
+    and then to allow that to be transparently replaced by a real DB backend like PostgreSQL
 
     """
     pass

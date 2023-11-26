@@ -53,5 +53,7 @@ class SqlModelSync:
 
     and then to allow that to be transparently replaced by a real DB backend like PostgreSQL
 
+    perhaps something that listens triggers at the SQL layer and then sends them to a Pubsub?
+
     """
     pass

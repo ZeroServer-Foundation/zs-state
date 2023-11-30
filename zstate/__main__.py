@@ -4,6 +4,8 @@ from .ext.sqlmodel import SqlModelPlugin
 from .ext.starlette import StarletteRouter,Mountable
 from .ext.starlette.auth import AuthPlugin
 
+from mdamorg import og
+
 pod = OrderedDict()
 pod["sqlmodel"] = SqlModelPlugin()
 pod["auth"] = AuthPlugin()

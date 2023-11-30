@@ -30,7 +30,7 @@ class Mountable(metaclass=abc.ABCMeta):
 
     add to the routes, middleware, etc.
 
-    so each plugin should be called in order and have a chance to modify those 
+    so each Mountable should be called in order and have a chance to modify those 
     
     ---
 

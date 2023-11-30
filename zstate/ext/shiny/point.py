@@ -200,3 +200,7 @@ class Point:
 
 OptionalPointList = Optional[list[Point]]
 
+
+def cycle(token_list: list):
+    return ",".join(token_list)
+

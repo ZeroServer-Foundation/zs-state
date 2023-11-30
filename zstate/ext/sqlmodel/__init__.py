@@ -9,6 +9,20 @@ def dc(cls):
     return cls
 
 
+
+class Storable:
+    """
+
+    something that represents a set of classes that are to be stored in tables
+
+    sort of like a subplugin, similar to the Mountable construct for StarletteRouter
+
+    !! we should be able to parse the __annotations__ and grab all of the schema info from there
+
+    """
+    pass
+
+
 @dc
 class SqlModelPlugin(Plugin):
 

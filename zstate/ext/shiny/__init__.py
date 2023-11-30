@@ -9,7 +9,7 @@ from shiny import render, reactive, render
 
 import shinyswatch
 
-from .point import Point
+from .point import *
 
 from zstate.ext.starlette import Mountable
 

@@ -6,5 +6,6 @@ __pycache__
 TMP
 RUN
 MODELS
+VENV
 __dist_html__
 

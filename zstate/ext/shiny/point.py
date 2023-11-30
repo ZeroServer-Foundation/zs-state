@@ -8,7 +8,7 @@ from dataclasses import dataclass,field,KW_ONLY
 
 from htmltools import Tag
 
-from .debug import *
+from zstate.debug import *
 
 rich_str = str
 
@@ -26,8 +26,9 @@ class Point:
     summary: str = None
     details: rich_str = None
     
-    bullet_list: list[str] = None
-    def_list: list[tuple[str,str]] = None
+    # these can be done using children
+    # bullet_list: list[str] = None
+    # def_list: list[tuple[str,str]] = None
     parent: Self = None
 
     @classmethod

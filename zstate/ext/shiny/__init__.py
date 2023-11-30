@@ -9,12 +9,21 @@ from shiny import render, reactive, render
 
 import shinyswatch
 
-from datasetstack import fake
+from .point import Point
 
-from .debug import *
+from zstate.ext.starlette import Mountable
+
+from zstate.debug import *
 
 from pprint import pformat as pf
 
+
+class ShinyMountable(Mountable):
+
+    def build_topnav_keylist(self,position_key): 
+        pass
+    def build_ui_nav(self,navkey):
+        pass
 
 @dataclass
 class ShinyAppBuilder:
@@ -31,51 +40,23 @@ class ShinyAppBuilder:
         ui.div("help nav")
     )
 
-    oabr: Any
-
-    def __post_init__(self):
-        pass
-
-    def build_offering_nav(self, org: Org): 
-        return self.gen_nav("Offering",menu=True)
-
-    def build_technology_nav(self, org: Org): 
-        return self.gen_nav("Technology",menu=True)
-
-    def build_company_nav(self, org: Org): 
-        return self.gen_nav("Company",menu=True)
-
-    def build_account_nav(self, org: Org):
-        """
-        register / login
-          by OIDC
-             SMS
-             EMAIL
-             ETH
-             QR code
-
-        """
-        return self.gen_nav("Account",menu=True)
-
-
-
-    def build_topnav(self, org: Org): 
+    def build_topnav(self, sm: ShinyMountable): 
         r_args = []
        
-        for i in org.topnav_left_keylist:
-            r_args.append(org.build_ui_nav(i))
+        for i in sm.build_topnav_keylist("left"):
+            r_args.append(sm.build_ui_nav(i))
 
         r_args.append(ui.nav_spacer())
 
-        for i in org.topnav_right_keylist:
-            r_args.append(org.build_ui_nav(i))
+        for i in sm.build_topnav_keylist("right"):
+            r_args.append(sm.build_ui_nav(i))
 
         r = ui.navset_tab( *r_args )
         return r 
 
 
 
-    def build_footer(self, org: Org):
+    def build_footer(self, sm: ShinyMountable):
         r = ui.div( ui.tags.hr(),
                     ui.span( f"copyright 2023 - {org.full_name}" ), 
                    # ui.span( ui.a("Privacy Policy", {"href":"/"} ),
@@ -85,11 +66,11 @@ class ShinyAppBuilder:
                   )
         return r
 
-    def build_main_page(self, org: Org):
+    def build_main_page(self, sm: ShinyMountable):
         args = [ #{"style": "background-color: rgba(1, 1, 1, 0.1)"},
                  self.theme,
-                 self.build_topnav(org),
-                 self.build_footer(org)
+                 self.build_topnav(sm),
+                 self.build_footer(sm)
         ]
 
         # breakpoint()
@@ -99,7 +80,7 @@ class ShinyAppBuilder:
 
     def server_entrypoint(self, 
                           input: Inputs, output: Outputs, session: Session,
-                          org: Org):
+                          sm: ShinyMountable):
         """
         oabr.module_dict has the registered modules from initialiaztion
 
@@ -110,13 +91,13 @@ class ShinyAppBuilder:
 
         """
         for k,v in self.oabr.module_dict.items():
-            v.server_entrypoint(input, output, session, org)
+            v.server_entrypoint(input, output, session, sm)
 
-    def build_app_for_org(self, org: Org):
-        mp = self.build_main_page(org)
+    def build_app_for_org(self, sm: ShinyMountable):
+        mp = self.build_main_page(sm)
 
         from functools import partial
-        fn = partial(self.server_entrypoint, org=org)
+        fn = partial(self.server_entrypoint, sm=sm)
         r = App(mp,fn)
 
         return r

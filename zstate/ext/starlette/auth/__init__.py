@@ -9,27 +9,6 @@ from zstate import Plugin
 from pprint import pformat as pf
 
 
-class Mountable:
-    """
-
-    the point is to on initialization, 
-
-    add to the routes, middleware, etc.
-
-    so each plugin should be called in order and have a chance to modify those 
-
-    """
-
-    def process_setup(self,
-                      route_list: list,
-                      middleware_list: list,
-                      data: dict) -> None:
-        pass
-
-    def __call__(self,*args,**kwargs):
-        pass
-
-
 
 @dataclass
 class AuthPlugin(Plugin):

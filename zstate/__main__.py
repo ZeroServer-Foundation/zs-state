@@ -8,4 +8,5 @@ pod = OrderedDict()
 pod["sqlmodel"] = SqlModelPlugin()
 pod["auth"] = AuthPlugin()
 pod["starlette"] = StarletteRouter()
-Runtime(plugin_ordereddict=pod)
+
+rt = Runtime(plugin_ordereddict=pod)

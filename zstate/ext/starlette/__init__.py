@@ -1,6 +1,6 @@
 # from .app import *
 
-import os
+import os,abc
 
 from typing import Self,Any 
 
@@ -92,7 +92,7 @@ class StarletteRouter(Plugin):
 
         self.app = Starlette( routes=rL, middleware=mL, debug=True )
 
-    def build_host_route(self, org: Org):
+    def build_host_route(self, org):
         app = self.build_app_router(org)
         r = Host(org.host_regex, name=org.name, app=app)
         

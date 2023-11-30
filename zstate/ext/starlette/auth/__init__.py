@@ -4,12 +4,12 @@ from starlette.routing import Route,Mount
 from starlette.middleware import Middleware
 from starlette.responses import Response,RedirectResponse,PlainTextResponse
 
-from . import OabRouter
+from zstate import Plugin
 
 from pprint import pformat as pf
 
 
-class Plugin:
+class Mountable:
     """
 
     the point is to on initialization, 
@@ -33,9 +33,6 @@ class Plugin:
 
 @dataclass
 class AuthPlugin(Plugin):
-
-    oabr: OabRouter = None
-    
 
     def __post_init__(self):
         pass

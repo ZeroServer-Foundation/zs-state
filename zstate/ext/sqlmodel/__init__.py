@@ -1,13 +1,17 @@
+from zstate import Plugin
+
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 
-from . import dc
 
-from .runtime import Plugin
+def dc(cls):
+    return cls
+
 
 @dc
-class SqlModelPlugin(Runtime):
+class SqlModelPlugin(Plugin):
+
     def __init__(self,*args,**kwargs):
         self.sql_url = "sqlite+aiosqlite:///database.db"
         self.engine = create_async_engine(self.sql_url, echo=True) 

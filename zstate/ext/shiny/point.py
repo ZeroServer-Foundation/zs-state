@@ -36,24 +36,27 @@ class Point:
                    p: Union[Self,Tag,
                             list[Union[Self,Tag]],
                             str],
-                   parent=None):
+                   parent=None,
+                   *args,**kwargs):
         r = None
         
         if type(p) == Point:
             r = p
             assert r.child_list == None or type(r.child_list) == list
             if p.child_list != None and len(p.child_list):
-                r.child_list = cls._normalize(p.child_list,parent=p)
+                r.child_list = cls._normalize(p.child_list,parent=p,*args,**kwargs)
         
         elif type(p) == list:
             r = []
             for i in p:
-                r.append(cls._normalize(i,parent=parent))
+                r.append(cls._normalize(i,parent=parent,*args,**kwargs))
         elif type(p) == str:
             r = Point(banner=p,parent=parent)
             # dbp()
         elif type(p) == Tag:
             r = p
+        elif type(p) == function:
+            r = p(args,kwargs)
         else:
             dbp(1) 
         
@@ -65,8 +68,7 @@ class Point:
     @classmethod
     def prepare(cls, 
                 plist: Union[list[Self]|Self],
-                key_prefix: str = None, 
-        ):
+                *args,**kwargs):
         """
         take a Point, or a list thereof, and prefix the keys of that point with the given str param
     
@@ -78,11 +80,11 @@ class Point:
         for i in plist:
             if len([ x for x in i.child_list if x == None ]):
                 dbp(1)
-            r.append( cls._normalize(i) )
+            r.append( cls._normalize(i,parent=None,*args,**kwargs) )
 
         return r
 
-    def render_to_ui_content(self,stack=None):
+    def render_to_ui_content(self,stack=None,*args,**kwargs):
         from shiny import ui
         
         r = []
@@ -134,7 +136,7 @@ class Point:
                         dev_tagcode(f"{self.banner} this needs some serious verification {stack and len(stack),len(fn_stack)}")
                         # breakpoint()
 
-                        r.extend( i.render_to_ui_content(fn_stack) )
+                        r.extend( i.render_to_ui_content(fn_stack,*args,**kwargs) )
 
                     elif type(i) == list:
                         dbp(1)

@@ -19,10 +19,26 @@ from pprint import pformat as pf
 
 
 class ShinyMountable(Mountable):
+    
 
-    def build_topnav_keylist(self,position_key): 
+    def server_entrypoint(self,input,output,session,owner,*args,**kwargs): 
+        """
+        in addition to having the constructs that match the miffleware and route parameters of a StarletteRouter's Mountable, Shiny Mountables produce widgets 
+    
+        """
         pass
-    def build_ui_nav(self,navkey):
+
+
+    def build_uikey_list(self,navarea_key,*args,**kwargs): 
+        """
+        produce a list fo the uikeys that this Mountable can produce for a given navarea_key:
+        top/left/0..n 
+        top/right/0..m
+        widget/nowkast?
+        """
+        pass
+    
+    def build_ui(self,uikey,*args,**kwargs) -> Any:
         pass
 
 @dataclass

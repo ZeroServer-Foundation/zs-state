@@ -7,6 +7,9 @@ from .ext.starlette.auth import AuthPlugin
 from mdamorg import og
 
 pod = OrderedDict()
+pod["nowkast"] = NowkastPlugin(
+                    sqlmodel_plugin_key="sqlmodel"
+                )
 pod["sqlmodel"] = SqlModelPlugin()
 pod["auth"] = AuthPlugin()
 pod["starlette"] = StarletteRouter(

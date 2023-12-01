@@ -24,7 +24,7 @@ from pprint import pformat as pf
 
 
 
-class Mountable(metaclass=abc.ABCMeta):
+class Mountable:
     """
     the point is to on initialization, 
 
@@ -65,12 +65,6 @@ class Mountable(metaclass=abc.ABCMeta):
 
             # breakpoint()
 
-    def __call__(self,*args,**kwargs):
-        pass
-    
-    @abc.abstractmethod
-    def build_routes(self,*args,**kwargs):
-        pass
 
 
 

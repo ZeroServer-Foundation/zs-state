@@ -23,6 +23,17 @@ class Storable:
     pass
 
 
+@dc 
+class StorablePlugin(Plugin):
+
+    sqlmodel_plugin_key: str
+
+    def handle_registered_with_runtime(self,runtime,*args,**kwargs):
+        super().handle_registered_with_runtime(runtime,*args,**kwargs)
+        self.sqlmode = self.registered_runtime.plugin_ordereddict["sqlmodel_plugin_key"]
+        dbp(1,pf(self.sqlmodel))      
+
+
 @dc
 class SqlModelPlugin(Plugin):
 

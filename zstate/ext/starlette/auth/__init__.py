@@ -4,20 +4,19 @@ from starlette.routing import Route,Mount
 from starlette.middleware import Middleware
 from starlette.responses import Response,RedirectResponse,PlainTextResponse
 
-from zstate import Plugin
-from .. import Mountable
+from .. import MountablePlugin
 
 from pprint import pformat as pf
 
 
+class AuthMountablePlugin(MountablePlugin):
 
-
-class AuthPlugin(Plugin,Mountable):
-
-    def process_setup(self,
-                      route_list: list,
-                      middleware_list: list,
-                      data: dict) -> None:
+    def _init_mountable(self,
+                        prefix,
+                        starletterouter,
+                        route_list: list,
+                        middleware_list: list,
+                        sr_data: dict) -> None:
         modL = [ 
             ("/basic_auth",  self.init_auth_basic,), 
             ("/authlib1",    self.init_auth_authlib1,), 
@@ -28,8 +27,8 @@ class AuthPlugin(Plugin,Mountable):
 
             mnt = Mount( prefix, routes=rL )
             route_list.append( mnt )
-        middleware_list.append( Middleware( *m_args, **m_kwargs ) )
-
+            middleware_list.append( Middleware( *m_args, **m_kwargs ) )
+    
         breakpoint()
 
     def init_auth_basic(self,prefix):
@@ -73,7 +72,7 @@ class AuthPlugin(Plugin,Mountable):
     def init_auth_authlib1(self,prefix):
         async def check(request):
             """
-            Check if we are in session.
+Check if we are in session.
             """
             content = f"""
                 <html>
@@ -111,9 +110,6 @@ class AuthPlugin(Plugin,Mountable):
 
 
         async def logout(request):
-            """
-            A login endpoint that creates a session.
-            """
             request.session.clear()
             return RedirectResponse(url=prefix)
 

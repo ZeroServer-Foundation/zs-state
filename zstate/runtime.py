@@ -10,13 +10,14 @@ from dataclasses import field, dataclass as dc
 @dc
 class Plugin: 
 
-    registered_with_runtime_completed_callback_list: list = field(default_factory=list)
+    # at the moment of registration with the Runtime, this list will be travsed and called
+    # or more accurately this is done in __post_init__ of the Runtime
+    notify_registered_with_runtime_callbackfn_list: list = field(default_factory=list)
 
     def __post_init__(self): pass
 
-    def handle_registered_with_runtime(self,runtime,*args,**kwargs): 
-        self.registered_runtime = runtime
-        for i in self.registered_with_runtime_completed_callback_list:
+    def _on_registered_with_runtime(self,runtime,*args,**kwargs): 
+        for i in self.notify_registered_with_runtime_callbackfn_list:
             i(self,runtime,*args,**kwargs)
     
 
@@ -31,8 +32,11 @@ class Runtime:
     instance = None
 
     def __post_init__(self): 
+        self.registered_runtime = self
         for k,v in self.plugin_ordereddict.items():
-            v.handle_registered_with_runtime(runtime=self)
+            v._on_registered_with_runtime(runtime=self)
+
+    
 
     @classmethod
     def get_instance(cls):

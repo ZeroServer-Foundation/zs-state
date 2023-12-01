@@ -144,6 +144,9 @@ class Point:
                     elif type(i) == Tag:
                         r.append(i)
                     
+                    elif type(i) == str:
+                        r.append( ui.div(i) )
+
                     else:
                         dbp(1)
 
@@ -199,6 +202,33 @@ class Point:
         """
         dbp(level=1,start_here=1,dev_tagcode=msg)
         return None
+
+
+
+    def search_decendents(self,match_fn):
+        if type(match_fn) == str:
+            match_str = match_fn
+            match_fn = lambda x: x.banner == match_str
+
+        if match_fn(self):
+            return self
+        else:
+            for i in self.child_list:
+                if type(i) == Point:
+                    r = i.search_decendents(match_fn)
+                    if r != None:
+                        return r
+            else:
+                return None
+
+
+
+
+
+
+
+
+
 
 OptionalPointList = Optional[list[Point]]
 

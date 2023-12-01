@@ -28,8 +28,8 @@ class StorablePlugin(Plugin):
 
     sqlmodel_plugin_key: str
 
-    def handle_registered_with_runtime(self,runtime,*args,**kwargs):
-        super().handle_registered_with_runtime(runtime,*args,**kwargs)
+    def _on_registered_with_runtime(self,runtime,*args,**kwargs):
+        Plugin._on_registered_with_runtime(self,runtime,*args,**kwargs)
         self.sqlmode = self.registered_runtime.plugin_ordereddict["sqlmodel_plugin_key"]
         dbp(1,pf(self.sqlmodel))      
 
@@ -37,8 +37,9 @@ class StorablePlugin(Plugin):
 @dc
 class SqlModelPlugin(Plugin):
 
-    def __init__(self,*args,**kwargs):
-        self.sql_url = "sqlite+aiosqlite:///database.db"
+    sql_url: str = "sqlite+aiosqlite:///database.db"
+
+    def __post_init__(self):
         self.engine = create_async_engine(self.sql_url, echo=True) 
 
     def get_sm_session(self):

@@ -1,5 +1,3 @@
-from collections import OrderedDict
-
 from . import *
 
 from zstate.ext.sqlmodel import SqlModelPlugin
@@ -11,8 +9,8 @@ pod["sqlmodel"] = SqlModelPlugin()
 pod["auth"] = AuthPlugin()
 pod["starlette"] = StarletteRouter(
     mountable_list=[
-        TestMountable("/dev"),
-        TestMountable("/authtest"),
+        Mountable("/dev", None),
+        Mountable("/authtest", None),
     ]
 )
 

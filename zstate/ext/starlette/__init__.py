@@ -4,7 +4,9 @@ import os,abc
 
 from typing import Self,Any 
 
-from dataclasses import dataclass, field
+from dataclasses import \
+    field, \
+    dataclass as dc
 
 from starlette.routing import Mount, Host, Router, Route
 from starlette.applications import Starlette
@@ -23,7 +25,7 @@ from pprint import pformat as pf
 
 
 
-
+@dc
 class Mountable:
     """
     the point is to on initialization, 
@@ -47,6 +49,8 @@ class Mountable:
     host = orggroup/orgkey / navkey
     """
 
+    prefix: str
+
     def process_setup(self,
                       route_list: list,
                       middleware_list: list,
@@ -54,7 +58,7 @@ class Mountable:
         pass
 
 
-
+@dc
 class TestMountable(Mountable):
 
     def process_setup(self,
@@ -75,7 +79,7 @@ class TestMountable(Mountable):
 
 
 
-@dataclass
+@dc
 class StarletteRouter(Plugin):
     """
 

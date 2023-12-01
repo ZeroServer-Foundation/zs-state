@@ -51,19 +51,25 @@ class Mountable:
                       route_list: list,
                       middleware_list: list,
                       data: dict) -> None:
-        modL = [ 
-            ("/basic_auth",  self.init_auth_basic,), 
-            ("/authlib1",    self.init_auth_authlib1,), 
-        ]
-        for m in modL:
-            prefix, target_fn = m 
-            rL, m_args, m_kwargs = target_fn(prefix)
+        pass
 
-            mnt = Mount( prefix, routes=rL )
-            route_list.append( mnt )
-            middleware_list.append( Middleware( *m_args, **m_kwargs ) )
 
-            # breakpoint()
+
+class TestMountable(Mountable):
+
+    def process_setup(self,
+                      route_list: list,
+                      middleware_list: list,
+                      data: dict) -> None:
+        route_list.append( Mount("/test_mount", self.test_mount_fn) )
+        route_list.append( Route("/test_route", self.test_route_fn) )
+
+    async def test_mount_fn(self,*args,**kwargs):
+        dbp(1,dev_tagcode="this causes a HTTP 500, saying that ASGI callable returned without starting a response")
+        return res("test") 
+    async def test_route_fn(self,*args,**kwargs):
+        return res( pf(locals()) ) 
+
 
 
 

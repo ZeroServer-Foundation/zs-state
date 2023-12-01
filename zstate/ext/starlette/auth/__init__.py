@@ -5,14 +5,32 @@ from starlette.middleware import Middleware
 from starlette.responses import Response,RedirectResponse,PlainTextResponse
 
 from zstate import Plugin
+from .. import Mountable
 
 from pprint import pformat as pf
 
 
 
-@dataclass
-class AuthPlugin(Plugin):
 
+class AuthPlugin(Plugin,Mountable):
+
+    def process_setup(self,
+                      route_list: list,
+                      middleware_list: list,
+                      data: dict) -> None:
+        modL = [ 
+            ("/basic_auth",  self.init_auth_basic,), 
+            ("/authlib1",    self.init_auth_authlib1,), 
+        ]
+        for m in modL:
+            prefix, target_fn = m 
+            rL, m_args, m_kwargs = target_fn(prefix)
+
+            mnt = Mount( prefix, routes=rL )
+            route_list.append( mnt )
+        middleware_list.append( Middleware( *m_args, **m_kwargs ) )
+
+        breakpoint()
 
     def init_auth_basic(self,prefix):
         from starlette.authentication import (

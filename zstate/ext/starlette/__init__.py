@@ -8,6 +8,8 @@ from dataclasses import \
     field, \
     dataclass as dc
 
+from functools import partial
+
 from starlette.routing import Mount, Host, Router, Route
 from starlette.applications import Starlette
 
@@ -58,7 +60,7 @@ class BaseMountable(Mountable,metaclass=abc.ABCMeta):
                     sr_data: dict) -> None:
         
         Mountable._on_pre_run(self,starletterouter, route_list, middleware_list, sr_data)
-        sub_route_list = self._on_pre_run_build_mount(starletterouter,route_list,middleware_list,sr_data)
+        sub_route_list = self._on_pre_run_build_sub_route_list(starletterouter,route_list,middleware_list,sr_data)
 
         if type(sub_route_list) != list:
             sub_route_list = [ sub_route_list ]
@@ -66,7 +68,7 @@ class BaseMountable(Mountable,metaclass=abc.ABCMeta):
         route_list.append( Mount( self.prefix, routes=sub_route_list ) )
 
     @abc.abstractmethod
-    def _on_pre_run_build_mount(self,
+    def _on_pre_run_build_sub_route_list(self,
                     starletterouter: Any,
                     route_list: list,
                     middleware_list: list,
@@ -76,20 +78,24 @@ class BaseMountable(Mountable,metaclass=abc.ABCMeta):
 @dc
 class TestMountable(BaseMountable):
 
-    def _on_pre_run_build_mount(self,
+    def _on_pre_run_build_sub_route_list(self,
                     starletterouter: Any,
                     route_list: list,
                     middleware_list: list,
                     sr_data: dict) -> None:
         
         r = []
-        r.append( Mount("/test_mount", self.test_mount_fn) )
-        r.append( Route("/test_route", self.test_route_fn) )
+        # r.append( Mount("/test_mount", self.test_mount_fn) )
+        r.append( Route("/pf", 
+                        partial( self.test_route_fn, 
+                                [], 
+                                {"build_mount_data": { "starletterouter": starletterouter, "route_list": route_list, "middleware_list": middleware_list, "sr_ata":sr_data }} )) )
         return r
 
     async def test_mount_fn(self,*args,**kwargs):
         dbp(1,dev_tagcode="this causes a HTTP 500, saying that ASGI callable returned without starting a response")
         return res("test") 
+
     async def test_route_fn(self,*args,**kwargs):
         return res( pf(locals()) ) 
 
@@ -120,7 +126,8 @@ class StarletteRouter(Plugin):
 
 class MountablePlugin(Plugin,metaclass=abc.ABCMeta):
 
-    def _init_mountable(self,
+    @abc.abstractmethod
+    def _init_mountable_build_sub_route_list(self,
                         prefix: str,
                         starletterouter: StarletteRouter,
                         route_list: list,
@@ -149,13 +156,15 @@ class MountablePlugin(Plugin,metaclass=abc.ABCMeta):
         class MpBaseMountable(BaseMountable):
             outer_self: MountablePlugin 
 
-            def _on_pre_run_build_mount(self,
+            def _on_pre_run_build_sub_route_list(self,
                                     starletterouter: StarletteRouter,
                                     route_list: list,
                                     middleware_list: list,
                                     sr_data: dict) -> None:
-                self.outer_self._init_mountable(prefix,starletterouter,route_list,middleware_list,sr_data)
+                return self.outer_self._init_mountable_build_sub_route_list(prefix,starletterouter,route_list,middleware_list,sr_data)
 
-        return MpBaseMountable(outer_self=outer_self,prefix=prefix)
+        return MpBaseMountable(prefix=prefix,
+                               outer_self=outer_self)
+                              
 
 

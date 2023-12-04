@@ -31,59 +31,6 @@ class Point:
     # def_list: list[tuple[str,str]] = None
     parent: Self = None
 
-    @classmethod
-    def _normalize(cls,
-                   p: Union[Self,Tag,
-                            list[Union[Self,Tag]],
-                            str],
-                   parent=None,
-                   *args,**kwargs):
-        r = None
-        
-        if type(p) == Point:
-            r = p
-            assert r.child_list == None or type(r.child_list) == list
-            if p.child_list != None and len(p.child_list):
-                r.child_list = cls._normalize(p.child_list,parent=p,*args,**kwargs)
-        
-        elif type(p) == list:
-            r = []
-            for i in p:
-                r.append(cls._normalize(i,parent=parent,*args,**kwargs))
-        elif type(p) == str:
-            r = Point(banner=p,parent=parent)
-            # dbp()
-        elif type(p) == Tag:
-            r = p
-        elif type(p) == function:
-            r = p(args,kwargs)
-        else:
-            dbp(1) 
-        
-        if False and type(r) == list:
-            dbp(1)
-
-        return r
-
-    @classmethod
-    def prepare(cls, 
-                plist: Union[list[Self]|Self],
-                *args,**kwargs):
-        """
-        take a Point, or a list thereof, and prefix the keys of that point with the given str param
-    
-        """
-        if type(plist) != list:
-            plist = [plist]
-        
-        r = []
-        for i in plist:
-            if len([ x for x in i.child_list if x == None ]):
-                dbp(1)
-            r.append( cls._normalize(i,parent=None,*args,**kwargs) )
-
-        return r
-
     def render_to_ui_content(self,stack=None,*args,**kwargs):
         from shiny import ui
         
@@ -144,6 +91,9 @@ class Point:
                     elif type(i) == Tag:
                         r.append(i)
                     
+                    elif callable(i):
+                        r.append( i(args,kwargs) )
+
                     elif type(i) == str:
                         r.append( ui.div(i) )
 

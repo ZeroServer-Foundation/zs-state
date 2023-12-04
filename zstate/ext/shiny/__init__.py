@@ -82,7 +82,7 @@ class PointShinyApp(ShinyAppMountable):
         
         # breakpoint()
         if p != None and type(p) == Point:
-            return p.render_to_ui_content()
+            return p.render_to_ui_content(args,kwargs)
         else:
             return ui.pre( pf(locals()) )
                       
@@ -150,9 +150,10 @@ class BaseShiny(PointShinyApp):
         @output
         @render.text
         def r1():
+            breakpoint()
             return f"r1 output{ pf( [input, output, session, args, kwargs] ) }"
 
-    def _on_pre_run_build_mount(self,
+    def _on_pre_run_build_sub_route_list(self,
                                 starletterouter,
                                 route_list,
                                 middleware_list,

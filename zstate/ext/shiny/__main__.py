@@ -7,6 +7,8 @@ from zstate.ext.starlette import StarletteRouter,TestMountable
 from zstate.ext.starlette.auth import AuthMountablePlugin
 from zstate.ext.sqlmodel import SqlModelPlugin
 
+from pprint import pformat as pf
+
 pod = OrderedDict()
 pod["sqlmodel"] = SqlModelPlugin()
 pod["auth"] = AuthMountablePlugin()
@@ -18,14 +20,16 @@ l_nav_list = [
 
 from shiny import ui
 r_nav_list = [
-    Point("r1",["content r1",ui.output_text("r1")]),
-    Point("r2",["content r2"]),
+    Point("r1",["content r1",
+                ui.output_text("r1")]),
+    Point("r2",["content r2",
+                lambda av,ad: ui.tags.pre( f" PRE LOCALS { pf(locals()) }" ) ]),
     ]
 
 pod["starlette"] = StarletteRouter(
     mountable_list=[
         TestMountable("/dev"),
-        pod["auth"].as_mountable("/authtest"),
+        pod["auth"].as_mountable("/auth"),
         BaseShiny("/shiny",
             root=Point(None,
                 [

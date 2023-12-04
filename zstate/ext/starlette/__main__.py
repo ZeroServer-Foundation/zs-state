@@ -12,7 +12,6 @@ pod["auth"] = AuthMountablePlugin()
 pod["starlette"] = StarletteRouter(
     mountable_list=[
         TestMountable("/dev"),
-        TestMountable("/authtest"),
         pod["auth"].as_mountable("/auth")
     ]
 )

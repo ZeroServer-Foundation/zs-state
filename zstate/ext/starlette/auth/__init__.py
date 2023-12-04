@@ -11,12 +11,21 @@ from pprint import pformat as pf
 
 class AuthMountablePlugin(MountablePlugin):
 
-    def _init_mountable(self,
+    def _init_mountable_build_sub_route_list(self,
                         prefix,
                         starletterouter,
                         route_list: list,
                         middleware_list: list,
                         sr_data: dict) -> None:
+        """
+        note this is supposed to return a sub_route_list which will be used to create a router
+
+        so watch out because this is directly manipulating the parent middleware_list but it is not to intract with the route_list, as the returned sub_routes will get added by the caller
+
+
+        """
+
+        r = []
         modL = [ 
             ("/basic_auth",  self.init_auth_basic,), 
             ("/authlib1",    self.init_auth_authlib1,), 
@@ -26,10 +35,10 @@ class AuthMountablePlugin(MountablePlugin):
             rL, m_args, m_kwargs = target_fn(prefix)
 
             mnt = Mount( prefix, routes=rL )
-            route_list.append( mnt )
+            r.append( mnt )
             middleware_list.append( Middleware( *m_args, **m_kwargs ) )
     
-        breakpoint()
+        return r
 
     def init_auth_basic(self,prefix):
         from starlette.authentication import (
@@ -81,6 +90,12 @@ Check if we are in session.
                     your status is: %(status)s, click here to <a href="/%(action)s">%(action)s</a>
                 
                 <pre>
+                { pf(self) }
+                </pre>
+                <pre>
+                { pf(prefix) }
+                </pre>
+                <pre>
                 { pf(locals()) }
                 </pre>
                 </body></html>
@@ -92,7 +107,7 @@ Check if we are in session.
                     status_code=401,
                 )
             # dbp(1)
-            return Response(content % {"status": "logged in", "action": "logout"})
+            return Response(content % {"status": f"logged in as {request.session.get('user')}", "action": "logout"})
 
 
         async def login(request):

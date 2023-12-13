@@ -6,9 +6,9 @@ DL = 3
 
 dev_tagcode = print
 
-def dmsg(msg=None):
+def dmsg(*args,**kwargs):
     if D:
-        print(msg)
+        print(args,kwargs)
 
 def dmark(msg=None):
     if D:
@@ -34,4 +34,9 @@ def dbp(level=5,dev_tagcode=None,start_here=False,do_dmark=False):
             dmark("dbp")
         if level < DL:
             breakpoint()
+
+
+
+dlog = dmsg
+
 

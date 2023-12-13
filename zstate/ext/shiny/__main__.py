@@ -47,7 +47,7 @@ s.run()
 
 import uvicorn
 if __name__ == "__main__":
-    breakpoint()
+    # breakpoint()
     uvicorn.run(s.app, host="0.0.0.0", port=8300, log_level="debug")
 
 

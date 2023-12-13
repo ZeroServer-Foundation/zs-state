@@ -39,7 +39,7 @@ class ShinyAppMountable(BaseMountable,metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def build_uikey_child_list(self,parent_uikey,*args,**kwargs): 
+    def build_uikey_child_list(self,parent_uikey,context_dict: dict): 
         """
         produce a list fo the uikeys that this Mountable can produce for a given navarea_key:
         top/left/0..n 
@@ -49,7 +49,7 @@ class ShinyAppMountable(BaseMountable,metaclass=abc.ABCMeta):
         pass
     
     @abc.abstractmethod
-    def build_ui(self,uikey,*args,**kwargs) -> Any:
+    def build_ui(self,uikey,context_dict: dict) -> Any:
         pass
 
 
@@ -62,8 +62,11 @@ class PointShinyApp(ShinyAppMountable):
     """
     root: Point 
 
-    def build_uikey_child_list(self,parent_uikey,*args,**kwargs):
+    def build_uikey_child_list(self,parent_uikey,context_dict=None):
         r = None
+        if self.root != None and type(self.root) != Point:
+            breakpoint()
+
         p = self.root.search_decendents(parent_uikey)
         if p != None and type(p) == Point:
             def str_for(x):
@@ -76,13 +79,14 @@ class PointShinyApp(ShinyAppMountable):
             r = [ str_for(i) for i in p.child_list ] 
         return r 
 
-    def build_ui(self,uikey,*args,**kwargs):
+    def build_ui(self,uikey,context_dict=None):
         r = None
         p = self.root.search_decendents(uikey)
         
         # breakpoint()
         if p != None and type(p) == Point:
-            return p.render_to_ui_content(args,kwargs)
+            return p.render_to_ui_content(context_dict=context_dict,
+                                          stack=None)
         else:
             return ui.pre( pf(locals()) )
                       
@@ -110,21 +114,21 @@ class BaseShiny(PointShinyApp):
         ui.div("help nav")
     )
 
-    def build_ui_topnav(self,*args,**kwargs): 
+    def build_ui_topnav(self,context_dict): 
         r_args = []
        
         for i in self.build_uikey_child_list("topnav/left"):
-            r_args.append( ui.nav( i, self.build_ui(i,*args,**kwargs) ) )
+            r_args.append( ui.nav( i, self.build_ui(i,context_dict) ) )
 
         r_args.append(ui.nav_spacer())
 
         for i in self.build_uikey_child_list("topnav/right"):
-            r_args.append( ui.nav( i, self.build_ui(i,*args,**kwargs) ) )
+            r_args.append( ui.nav( i, self.build_ui(i,context_dict) ) )
 
         r = ui.navset_tab( *r_args )
         return r 
 
-    def build_ui_footer(self,*args,**kwargs):
+    def build_ui_footer(self,context_dict):
         r = ui.div( ui.tags.hr(),
                     ui.span( f"copyright 2023 - ZeroServer Foundation" ), 
                     # ui.span( ui.a("Privacy Policy", {"href":"/"} ),
@@ -134,11 +138,11 @@ class BaseShiny(PointShinyApp):
                   )
         return r
 
-    def build_ui_root(self,*args,**kwargs):
+    def build_ui_root(self,context_dict):
         r_args = [ #{"style": "background-color: rgba(1, 1, 1, 0.1)"},
                  self.theme,
-                 self.build_ui_topnav(*args,**kwargs),
-                 self.build_ui_footer(*args,**kwargs)
+                 self.build_ui_topnav(context_dict),
+                 self.build_ui_footer(context_dict)
         ]
 
         # breakpoint()
@@ -147,25 +151,31 @@ class BaseShiny(PointShinyApp):
 
 
     def server_entrypoint(self,input,output,session,*args,**kwargs): 
+        session_connection = session._conn.conn.session
+        user = session_connection.get("user")
+        dlog(f"new session for user={user}","info")        
+        # breakpoint()
+
         @output
         @render.text
         def r1():
-            breakpoint()
-            return f"r1 output{ pf( [input, output, session, args, kwargs] ) }"
+            return f"r1 output[{ session.http_conn.session.get('user') }] { pf( [input, output, session, args, kwargs] ) }"
 
     def _on_pre_run_build_sub_route_list(self,
                                 starletterouter,
                                 route_list,
                                 middleware_list,
                                 sr_data):
-        args = []
-        kwargs = {
+        context_dict = {
             "starletterouter": starletterouter,
             "route_list": route_list,
             "middleware_list": middleware_list,
             "sr_data": sr_data
         }
         r = Mount("/",
-                  App(self.build_ui_root(*args,**kwargs),self.server_entrypoint) )
+                  App( self.build_ui_root(context_dict),
+                       self.server_entrypoint
+                  ) 
+        )
         return r
     

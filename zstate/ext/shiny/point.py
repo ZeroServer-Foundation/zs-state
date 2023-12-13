@@ -31,7 +31,9 @@ class Point:
     # def_list: list[tuple[str,str]] = None
     parent: Self = None
 
-    def render_to_ui_content(self,stack=None,*args,**kwargs):
+    def render_to_ui_content(self,
+                             context_dict: dict=None,
+                             stack: list=None):
         from shiny import ui
         
         r = []
@@ -77,13 +79,20 @@ class Point:
                         if stack == None:
                             fn_stack = [ self ]
                         else:
+                            # breakpoint()
+                            if type(stack) == slice: 
+                                breakpoint()
                             fn_stack = stack[:]
+                            if type(fn_stack) == tuple: 
+                                breakpoint()
                             fn_stack.append( self )
                         
                         dev_tagcode(f"{self.banner} this needs some serious verification {stack and len(stack),len(fn_stack)}")
-                        # breakpoint()
 
-                        r.extend( i.render_to_ui_content(fn_stack,*args,**kwargs) )
+                        # breakpoint()
+                        x = i.render_to_ui_content(context_dict=context_dict,
+                                                   stack=fn_stack) 
+                        r.append( x )
 
                     elif type(i) == list:
                         dbp(1)
@@ -92,7 +101,7 @@ class Point:
                         r.append(i)
                     
                     elif callable(i):
-                        r.append( i(args,kwargs) )
+                        r.append( i(context_dict) )
 
                     elif type(i) == str:
                         r.append( ui.div(i) )
@@ -103,7 +112,61 @@ class Point:
                             
         return r
 
-    def resolve(self,*args,**kwargs):
+    def normalize(self,
+                  context_dict: dict=None,
+                  stack: list=None):
+
+        if self.child_list == None:
+            self.child_list = []
+
+        if type(self.child_list) != list:
+            dbp(1)
+
+        for p in range(len(self.child_list)):
+            
+            i = self.child_list[p]
+            if type(i) == str:
+                i = Point(i)   
+                self.child_list[p] = i
+
+            if type(i) != Point:
+                dbp(1)
+
+            if i.parent == None:
+                i.parent = self
+                
+            if i.parent != self:
+                dbp(1)
+
+            if type(i) == Point:
+                fn_stack = None
+                if stack == None:
+                    fn_stack = [ self ]
+                else:
+                    if type(stack) == slice: 
+                        breakpoint()
+                    fn_stack = stack[:]
+                    if type(fn_stack) == tuple: 
+                        breakpoint()
+                    fn_stack.append( self )
+                    
+                i.normalize(context_dict=context_dict,
+                            stack=fn_stack) 
+            elif type(i) == list:
+                dbp(1)
+            
+            elif type(i) == Tag:
+                dbp(1)
+                    
+            elif callable(i):
+                dbp(1)
+
+            else:
+                dbp(1)
+                            
+        return self
+
+    def _dep_me_resolve(self,*args,**kwargs):
         """
         this is called in the tagify process, which decends down the DOM like assembly that happens in py-htmltools, turning the TagList object that represents the children of a Tag, i believe to render further child/ascestor elements into that structure
 
@@ -129,7 +192,7 @@ class Point:
                     contents.append(x)
         return nav,contents
 
-    def get_value(self,*args,**kwargs):
+    def _dep_me_get_value(self,*args,**kwargs):
         """
 
         has to do with NavSetArg protocol in shiny.ui, which calls this method on args to a navset, looks like to establish which nav to have marked as selected.  if you return None, it assumes the first one is the one selected
@@ -138,7 +201,7 @@ class Point:
         dbp(1)
         return None
 
-    def encode(self,*args,**kwargs):
+    def _dep_me_encode(self,*args,**kwargs):
         """
 
         has to do with NavSetArg protocol in shiny.ui, which calls this method on args to a navset, looks like to establish which nav to have marked as selected.  if you return None, it assumes the first one is the one selected
@@ -163,6 +226,9 @@ class Point:
         if match_fn(self):
             return self
         else:
+            if self.child_list == None:
+                breakpoint()
+
             for i in self.child_list:
                 if type(i) == Point:
                     r = i.search_decendents(match_fn)

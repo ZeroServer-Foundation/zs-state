@@ -11,7 +11,7 @@ from pprint import pformat as pf
 
 class AuthMountablePlugin(MountablePlugin):
 
-    def _init_mountable_build_sub_route_list(self,
+    def _init_mountable_build_subroute_list(self,
                         prefix,
                         starletterouter,
                         route_list: list,

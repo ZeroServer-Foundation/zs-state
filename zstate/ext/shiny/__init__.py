@@ -16,7 +16,7 @@ from .point import *
 
 from starlette.routing import Mount
 
-from zstate.ext.starlette import BaseMountable
+from zstate.ext.starlette import MountablePlugin,BaseMountable
 
 from zstate.debug import *
 
@@ -161,21 +161,52 @@ class BaseShiny(PointShinyApp):
         def r1():
             return f"r1 output[{ session.http_conn.session.get('user') }] { pf( [input, output, session, args, kwargs] ) }"
 
-    def _on_pre_run_build_sub_route_list(self,
+    def _on_pre_run_build_subroute_list(self,
                                 starletterouter,
                                 route_list,
                                 middleware_list,
                                 sr_data):
+        breakpoint()
         context_dict = {
             "starletterouter": starletterouter,
             "route_list": route_list,
             "middleware_list": middleware_list,
             "sr_data": sr_data
         }
-        r = Mount("/",
+        r = []
+        r.append( Mount("/",
                   App( self.build_ui_root(context_dict),
                        self.server_entrypoint
                   ) 
-        )
+        ) )
         return r
-    
+   
+
+@dc
+class BaseShinyMountablePlugin(MountablePlugin):
+    """
+
+    i understand this is overly complicated but this provides a MountablePlugin who is mountable as a BaseShiny, which is what I want for nowkast
+
+    hopefully this at least shields dev users form the confusion of the underlying multi-inheritance of BaseShiny and Mountable Plugin
+
+    i imagine this will be cleanewd up when the documentation is writeen because te documentation process will draw out that the design doesn't make much sense
+
+
+    """
+    root: Point = None
+
+    def as_mountable(self,prefix):
+        """ return a mountable presentation which will be a BaseShiny
+        """
+        outer_self = self
+        
+        @dc
+        class MpBaseShiny(BaseShiny):
+            outer_self: MountablePlugin = None
+
+        return MpBaseShiny(prefix=prefix,
+                           root=outer_self.root,
+                           outer_self=outer_self)
+
+

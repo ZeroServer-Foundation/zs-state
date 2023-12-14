@@ -129,6 +129,10 @@ class Point:
                 i = Point(i)   
                 self.child_list[p] = i
 
+            if callable(i):
+               i = Point(f"CALLABLE TODO{i}")
+               self.child_list[p] = i
+
             if type(i) != Point:
                 dbp(1)
 
@@ -158,9 +162,6 @@ class Point:
             elif type(i) == Tag:
                 dbp(1)
                     
-            elif callable(i):
-                dbp(1)
-
             else:
                 dbp(1)
                             

@@ -30,11 +30,9 @@ from pprint import pformat as pf
 @dc
 class Mountable:
     """
-    the point is to on initialization, 
+    this class provides a grouping construct to add to the routes, middleware, etc.
 
-    add to the routes, middleware, etc.
-
-    so each Mountable should be called in order and have a chance to modify those 
+    so each Mountable should be called in order and have a chance to modify those structures used in the StarleetRouter class 
     
     """
 
@@ -52,7 +50,11 @@ res = Response
 
 @dc
 class BaseMountable(Mountable,metaclass=abc.ABCMeta):
+    """
 
+    in this base implementation, a Mount object is created and the abstracted out subroutes are appended to that parent Mount
+
+    """
     def _on_pre_run(self,
                     starletterouter: Any,
                     route_list: list,
@@ -60,29 +62,32 @@ class BaseMountable(Mountable,metaclass=abc.ABCMeta):
                     sr_data: dict) -> None:
         
         Mountable._on_pre_run(self,starletterouter, route_list, middleware_list, sr_data)
-        sub_route_list = self._on_pre_run_build_sub_route_list(starletterouter,route_list,middleware_list,sr_data)
+        subroute_list = self._on_pre_run_build_subroute_list(starletterouter,route_list,middleware_list,sr_data)
 
-        if type(sub_route_list) != list:
-            sub_route_list = [ sub_route_list ]
+        if type(subroute_list) != list:
+            breakpoint()
 
-        route_list.append( Mount( self.prefix, routes=sub_route_list ) )
+        route_list.append( Mount( self.prefix, routes=subroute_list ) )
 
     @abc.abstractmethod
-    def _on_pre_run_build_sub_route_list(self,
+    def _on_pre_run_build_subroute_list(self,
                     starletterouter: Any,
                     route_list: list,
                     middleware_list: list,
-                    sr_data: dict) -> None:
+                    sr_data: dict) -> list:
+        """ return the routes that will be added to the parent Mount for this mountable 
+        
+        """
         pass
 
 @dc
 class TestMountable(BaseMountable):
 
-    def _on_pre_run_build_sub_route_list(self,
+    def _on_pre_run_build_subroute_list(self,
                     starletterouter: Any,
                     route_list: list,
                     middleware_list: list,
-                    sr_data: dict) -> None:
+                    sr_data: dict) -> list:
         
         r = []
         # r.append( Mount("/test_mount", self.test_mount_fn) )
@@ -125,15 +130,19 @@ class StarletteRouter(Plugin):
 
 
 class MountablePlugin(Plugin,metaclass=abc.ABCMeta):
+    """ this is both a Plugin (which means that it is initialized by the Runtime as a separable lifecycle managed execution component, AND also a Mountable (which is a mounting presentation for the StarletteRouter plugin).
 
-    @abc.abstractmethod
-    def _init_mountable_build_sub_route_list(self,
+The _on_registered_with_runtime method will be called when the Runtime registers the plugin, and then StarletteRouter will typically be initialized with the return value of self.as_mountable, which in this base implementation i s like a Java-style adaptor class.
+
+    """
+    def _init_mountable_build_subroute_list(self,
                         prefix: str,
                         starletterouter: StarletteRouter,
                         route_list: list,
                         middleware_list: list,
-                        sr_data: dict) -> None:
-        pass
+                        sr_data: dict) -> list:
+        r = []
+        return r
 
 
     def as_mountable(self,prefix):
@@ -156,12 +165,12 @@ class MountablePlugin(Plugin,metaclass=abc.ABCMeta):
         class MpBaseMountable(BaseMountable):
             outer_self: MountablePlugin 
 
-            def _on_pre_run_build_sub_route_list(self,
+            def _on_pre_run_build_subroute_list(self,
                                     starletterouter: StarletteRouter,
                                     route_list: list,
                                     middleware_list: list,
                                     sr_data: dict) -> None:
-                return self.outer_self._init_mountable_build_sub_route_list(prefix,starletterouter,route_list,middleware_list,sr_data)
+                return self.outer_self._init_mountable_build_subroute_list(prefix,starletterouter,route_list,middleware_list,sr_data)
 
         return MpBaseMountable(prefix=prefix,
                                outer_self=outer_self)

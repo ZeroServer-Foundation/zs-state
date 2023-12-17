@@ -1,11 +1,10 @@
 import os,abc
 
-from typing import Self,Any 
+from typing import Self,Type,Any 
 
 from dataclasses import \
     field, \
     dataclass as dc
-
 
 from shiny import ui, App, Inputs, Outputs, Session
 from shiny import render, reactive, render
@@ -145,40 +144,50 @@ class BaseShiny(PointShinyApp):
                  self.build_ui_footer(context_dict)
         ]
 
-        # breakpoint()
+        breakpoint()
         r = ui.page_fluid( *r_args )
         return r
 
 
     def server_entrypoint(self,input,output,session,*args,**kwargs): 
-        session_connection = session._conn.conn.session
-        user = session_connection.get("user")
-        dlog(f"new session for user={user}","info")        
-        # breakpoint()
+        if False:
+            session_connection = session._conn.conn.session
+            user = session_connection.get("user")
+            dlog(f"new session for user={user}","info")        
+            # breakpoint()
 
-        @output
-        @render.text
-        def r1():
-            return f"r1 output[{ session.http_conn.session.get('user') }] { pf( [input, output, session, args, kwargs] ) }"
+            @output
+            @render.text
+            def r1():
+                return f"r1 output[{ session.http_conn.session.get('user') }] { pf( [input, output, session, args, kwargs] ) }"
+
+        elif False:
+            from nowkast.shiny import nk_chat_server
+            [ nk_chat_server(f"chat{i}") for i in range(10) ]
+            breakpoint()
+
+        elif True:
+            WidgetTest.server_for(id="test1")
 
     def _on_pre_run_build_subroute_list(self,
                                 starletterouter,
                                 route_list,
                                 middleware_list,
                                 sr_data):
-        breakpoint()
         context_dict = {
             "starletterouter": starletterouter,
             "route_list": route_list,
             "middleware_list": middleware_list,
             "sr_data": sr_data
         }
+        app = App( 
+            self.build_ui_root(context_dict),
+            self.server_entrypoint
+        ) 
         r = []
-        r.append( Mount("/",
-                  App( self.build_ui_root(context_dict),
-                       self.server_entrypoint
-                  ) 
-        ) )
+        r.append( Mount("/", app) )
+        
+        breakpoint()
         return r
    
 
@@ -209,4 +218,114 @@ class BaseShinyMountablePlugin(MountablePlugin):
                            root=outer_self.root,
                            outer_self=outer_self)
 
+
+
+@dc
+class WidgetField: 
+    """
+    
+    this is the fields that are defined in a Widget class
+
+
+    """
+    name: str
+    field_type: type
+    
+
+
+
+
+class WidgetMeta(type):
+    """
+
+
+
+    """
+    widget_class_dict = {}
+    
+    def __new__(mcls, name, bases, attrs):
+        attrs["_instance_list"] = []
+
+        """ this below is a placeholder for alternatively wrapping init instead of using __new__ in widget for registration
+
+        helpful links:
+https://stackoverflow.com/questions/56918764/using-metaclass-to-keep-track-of-instances-in-python
+https://stackoverflow.com/questions/392160/what-are-some-concrete-use-cases-for-metaclasses
+                    
+        """
+        if False:
+            def wrapped_init(self,*args,**kwargs):
+                breakpoint()
+            attrs["__init__"] = wrapped_init
+
+        mcls.widget_class_dict[name] = r = type.__new__(mcls, name, bases, attrs)
+        return r
+
+    @classmethod
+    def get_widgetclass_for_dataclass(mcls, id: str, dataclass_cls: Type): 
+        """
+
+        this parses a given dataclass to produce a list of WidgetFileds, which is used to create a Widget class
+
+        perhaps this should be static on the widget class, but since we want to be able to subclass the widget class to perform different formatting and storage, it seems like the generations of field data which is populated into a class (as a stati-to-the-class datastructure) should be produced at the meta level.  
+
+        """
+        fields = []
+        for k,v in dataclass_cls.__annotations__.items():
+            breakpoint()
+
+        widgetfield_list = []
+        for f in fields:
+            wf = WidgetField(name=n,field_type=t)
+            widget_field_list.append(wf)
+
+        breakpoint()
+        return 
+    
+    @classmethod
+    def get_widgetclass_for_sqlmodelclass(mcls, id: str, sqlmodel_cls: Type): 
+        breakpoint()
+        return
+
+
+
+
+
+
+@dc
+class Widget(metaclass=WidgetMeta):
+    """
+
+    has a list of fields
+    has cacpcity to generate a shiny module for CRUD on those field, and produce a list CRUD too, 
+    s
+
+    """
+
+    field_list: list[WidgetField]
+
+    def build_ui(self): pass
+
+    def build_server(self): pass
+
+    def server_for(self,id):
+        dlog("this needs to be scoped to the namespace in session i'm pretty sure")
+        breakpoint()
+
+    @classmethod
+    def __new__(cls,*args,**kwargs):
+        r = super().__new__(cls,*args,**kwargs)
+        cls.__instance_list__.append(r)
+        return r
+
+
+
+@dc
+class WidgetTestDataclass:
+
+    name: str
+    desc: str
+
+    tests: list[str] = field(default_factory=list)
+    
 

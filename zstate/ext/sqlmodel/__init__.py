@@ -27,10 +27,21 @@ class Storable:
 class StorablePlugin(Plugin):
 
     sqlmodel_plugin_key: str
+    sqlmodel_storable_class_list: list
+
+    sqlmodel_table_prefix: str = ""
+
+    def classname_to_tablename(self,classname):
+        return f"{self.sqlmodel_table_predix}{classname}"
+
+    def tablename_to_classname(self,tablename):
+        r = tablename[len(self.sqlmodel_table_prefix):]
+        return r
+
 
     def _on_registered_with_runtime(self,runtime,*args,**kwargs):
         Plugin._on_registered_with_runtime(self,runtime,*args,**kwargs)
-        self.sqlmode = self.registered_runtime.plugin_ordereddict["sqlmodel_plugin_key"]
+        self.sqlmodel = self.registered_runtime.plugin_ordereddict["sqlmodel_plugin_key"]
         dbp(1,pf(self.sqlmodel))      
 
 
